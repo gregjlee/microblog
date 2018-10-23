@@ -12,6 +12,7 @@ from flask_babel import Babel, lazy_gettext as _l
 from elasticsearch import Elasticsearch
 from redis import Redis
 import rq
+from flask_cors import CORS
 from config import Config
 
 db = SQLAlchemy()
@@ -23,6 +24,7 @@ mail = Mail()
 bootstrap = Bootstrap()
 moment = Moment()
 babel = Babel()
+cors = CORS()
 
 
 def create_app(config_class=Config):
@@ -31,6 +33,7 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    cors.init_app(app)
     login.init_app(app)
     mail.init_app(app)
     bootstrap.init_app(app)
