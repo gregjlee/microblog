@@ -1,6 +1,6 @@
-from flask import jsonify, request, url_for
+from flask import jsonify, request, url_for, g
 from app import db
-from app.models import User
+from app.models import User, Post
 from app.api import bp
 from app.api.auth import token_auth
 from app.api.errors import bad_request
@@ -13,11 +13,28 @@ def get_user(id):
 
 
 @bp.route('/users', methods=['GET'])
-# @token_auth.login_required
+@token_auth.login_required
 def get_users():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 10, type=int), 100)
     data = User.to_collection_dict(User.query, page, per_page, 'api.get_users')
+    return jsonify(data)
+
+
+@bp.route('/users/self/posts', methods=['GET'])
+@token_auth.login_required
+def get_my_posts():
+    return get_posts(g.current_user.id)
+
+
+@bp.route('/users/<int:id>/posts', methods=['GET'])
+@token_auth.login_required
+def get_posts(id):
+    user = User.query.get_or_404(id)
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 10, type=int), 100)
+    data = Post.to_collection_dict(user.posts.order_by(Post.timestamp.desc()), page, per_page,
+                                   'api.get_posts', id=id)
     return jsonify(data)
 
 
